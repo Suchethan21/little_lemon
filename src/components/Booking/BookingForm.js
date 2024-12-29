@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './BookingForm.css';
 
 const BookingForm = () => {
+  const navigate = useNavigate();
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const [bookingData, setBookingData] = useState({
     date: '',
     time: '',
@@ -12,8 +15,15 @@ const BookingForm = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Handle booking submission
-    console.log('Booking submitted:', bookingData);
+    setShowConfirmation(true);
+    setTimeout(() => {
+      setShowConfirmation(false);
+      navigate('/menu', { 
+        state: { 
+          message: 'Table reserved! Browse our menu to pre-order your meal.' 
+        }
+      });
+    }, 3000);
   };
 
   const handleChange = (e) => {
@@ -23,6 +33,18 @@ const BookingForm = () => {
       [name]: value
     }));
   };
+
+  if (showConfirmation) {
+    return (
+      <div className="booking-confirmation">
+        <div className="confirmation-content">
+          <h2>Reservation Confirmed! 🎉</h2>
+          <p>Your table has been reserved successfully.</p>
+          <p className="redirect-message">Redirecting you to our menu...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="booking-container">
@@ -116,7 +138,9 @@ const BookingForm = () => {
           </div>
         </div>
 
-        <button type="submit" className="submit-button">Let's go</button>
+        <button type="submit" className="submit-button">
+          Reserve Table
+        </button>
       </form>
     </div>
   );

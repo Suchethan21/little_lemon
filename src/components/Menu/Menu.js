@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { IMAGES } from '../../utils/images';
 import './Menu.css';
@@ -128,30 +128,32 @@ const MENU_ITEMS = [
 ];
 
 const Menu = () => {
+  const location = useLocation();
+  const { addToCart, removeFromCart, cartItems } = useCart();
+  const [showNotification, setShowNotification] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Lunch');
-  const [notifications, setNotifications] = useState([]);
-  const { cartItems, addToCart, removeFromCart } = useCart();
+
+  useEffect(() => {
+    if (location.state?.message) {
+      setNotificationMessage(location.state.message);
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 5000);
+    }
+  }, [location]);
 
   const handleOrder = (item) => {
     if (cartItems.find(cartItem => cartItem.id === item.id)) {
       removeFromCart(item.id);
-      showNotification(`Removed ${item.name} from cart`, 'error');
+      setNotificationMessage(`Removed ${item.name} from cart`);
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 3000);
     } else {
       addToCart(item);
-      showNotification(`Added ${item.name} to cart`, 'success');
+      setNotificationMessage(`Added ${item.name} to cart`);
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 3000);
     }
-  };
-
-  const showNotification = (message, type) => {
-    const newNotification = {
-      id: Date.now(),
-      message,
-      type
-    };
-    setNotifications(prev => [...prev, newNotification]);
-    setTimeout(() => {
-      setNotifications(prev => prev.filter(n => n.id !== newNotification.id));
-    }, 3000);
   };
 
   const isItemInCart = (itemId) => {
@@ -160,6 +162,12 @@ const Menu = () => {
 
   return (
     <div className="menu-container">
+      {showNotification && (
+        <div className="notification">
+          {notificationMessage}
+        </div>
+      )}
+
       <h1>Our Menu</h1>
       
       <div className="menu-categories">
@@ -213,14 +221,6 @@ const Menu = () => {
           Go to Cart ({cartItems.length})
         </Link>
       )}
-
-      <div className="notifications">
-        {notifications.map(notification => (
-          <div key={notification.id} className={`notification ${notification.type}`}>
-            {notification.message}
-          </div>
-        ))}
-      </div>
     </div>
   );
 };
